@@ -458,8 +458,12 @@
                     <span class="result-value" id="total-quantity">0 根</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">材积</span>
-                    <span class="result-value" id="total-volume">0.0 m³</span>
+                    <span class="result-label">单根材积</span>
+                    <span class="result-value" id="single-volume">0.000 m³</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">总材积</span>
+                    <span class="result-value" id="total-volume">0.0 方</span>
                 </div>
                 <div class="result-item">
                     <span class="result-label">金额</span>
@@ -650,13 +654,14 @@
             const totalAmount = totalVolume * price;
 
             // 更新显示结果
-            updateResults(quantity, totalVolume, totalAmount);
+            updateResults(quantity, singleVolume, totalVolume, totalAmount);
         }
 
         // 更新结果显示
-        function updateResults(quantity, totalVolume, totalAmount) {
+        function updateResults(quantity, singleVolume, totalVolume, totalAmount) {
             document.getElementById('total-quantity').textContent = `${quantity} 根`;
-            document.getElementById('total-volume').textContent = `${totalVolume.toFixed(1)} m³`;
+            document.getElementById('single-volume').textContent = `${singleVolume.toFixed(3)} m³`;
+            document.getElementById('total-volume').textContent = `${totalVolume.toFixed(1)} 方`;
             document.getElementById('total-amount').textContent = `${totalAmount.toFixed(2)} 元`;
         }
 
@@ -684,6 +689,9 @@
                 return;
             }
 
+            // 计算单根材积用于历史记录
+            const singleVolume = calculateVolume(parseFloat(length), parseFloat(diameter));
+            
             // 保存到历史记录
             const record = {
                 id: Date.now(),
@@ -692,7 +700,8 @@
                 diameter: parseFloat(diameter),
                 quantity: parseInt(quantity),
                 price: parseFloat(price),
-                volume: parseFloat(volumeText.replace(' m³', '')),
+                singleVolume: singleVolume,
+                volume: parseFloat(volumeText.replace(' 方', '')),
                 amount: parseFloat(amountText.replace(' 元', ''))
             };
 
@@ -704,7 +713,8 @@
             shareText += `长度: ${length}m\n`;
             shareText += `直径: ${diameter}cm\n`;
             shareText += `数量: ${quantityText}\n`;
-            shareText += `材积: ${volumeText}\n`;
+            shareText += `单根材积: ${singleVolume.toFixed(3)}m³\n`;
+            shareText += `总材积: ${volumeText}\n`;
             if (parseFloat(price) > 0) {
                 shareText += `金额: ${amountText}\n`;
             }
@@ -739,7 +749,8 @@
                             长度: ${record.length}m<br>
                             直径: ${record.diameter}cm<br>
                             数量: ${record.quantity}根<br>
-                            <strong>材积: ${record.volume.toFixed(3)}m³${record.amount > 0 ? ` | 金额: ${record.amount.toFixed(2)}元` : ''}</strong>
+                            单根材积: ${(record.singleVolume || record.volume / record.quantity).toFixed(3)}m³<br>
+                            <strong>总材积: ${record.volume.toFixed(1)}方${record.amount > 0 ? ` | 金额: ${record.amount.toFixed(2)}元` : ''}</strong>
                         </div>
                     </div>
                 `).join('');
@@ -767,7 +778,8 @@
                 shareText += `   长度: ${record.length}m\n`;
                 shareText += `   直径: ${record.diameter}cm\n`;
                 shareText += `   数量: ${record.quantity}根\n`;
-                shareText += `   材积: ${record.volume.toFixed(3)}m³`;
+                shareText += `   单根材积: ${(record.singleVolume || record.volume / record.quantity).toFixed(3)}m³\n`;
+                shareText += `   总材积: ${record.volume.toFixed(1)}方`;
                 if (record.amount > 0) {
                     shareText += ` | 金额: ${record.amount.toFixed(2)}元`;
                 }
@@ -808,7 +820,7 @@
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
-            updateResults(0, 0, 0);
+            updateResults(0, 0, 0, 0);
         });
     </script>
 </body>
